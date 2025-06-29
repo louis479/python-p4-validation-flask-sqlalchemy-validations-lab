@@ -6,7 +6,7 @@ db = SQLAlchemy()
 
 class Author(db.Model):
     __tablename__ = 'authors'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     phone_number = db.Column(db.String, nullable=False)
@@ -30,30 +30,29 @@ class Author(db.Model):
         return value
 
     def __repr__(self):
-        return f'Author(id={self.id}, name={self.name})'
-
+        return f"<Author id={self.id} name={self.name}>"
 
 class Post(db.Model):
     __tablename__ = 'posts'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String)
-    category = db.Column(db.String)
     summary = db.Column(db.String)
+    category = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    # Optional: link posts to authors
     author_id = db.Column(db.Integer, db.ForeignKey('authors.id'))
     author = db.relationship('Author', backref='posts')
 
-    # Clickbait patterns (regex)
+    # Patterns to catch clickbait (matches are case-insensitive)
     CLICKBAIT_PATTERNS = [
         r'\bsecret\b',
         r'\byou won\'?t believe\b',
         r'\bamazing\b',
         r'\bshocking\b',
+        r'\btop \d+\b'
     ]
 
     @validates('title')
@@ -62,15 +61,15 @@ class Post(db.Model):
             raise ValueError("Post must have a title.")
         
         normalized = value.lower()
-        if any(re.search(pattern, normalized) for pattern in self.CLICKBAIT_PATTERNS):
-            raise ValueError("Post title cannot be clickbait.")
-        
+        for pattern in self.CLICKBAIT_PATTERNS:
+            if re.search(pattern, normalized):
+                raise ValueError("Post title cannot be clickbait.")
         return value
 
     @validates('content')
     def validate_content(self, key, value):
         if not value or len(value.strip()) < 250:
-            raise ValueError(f"Post content must be at least 250 characters (currently {len(value.strip()) if value else 0}).")
+            raise ValueError("Post content must be at least 250 characters.")
         return value
 
     @validates('summary')
@@ -81,10 +80,10 @@ class Post(db.Model):
 
     @validates('category')
     def validate_category(self, key, value):
-        valid_categories = ['Technology', 'Lifestyle', 'Education', 'Health', 'Finance']
+        valid_categories = ['Technology', 'Lifestyle', 'Education', 'Health', 'Finance', 'Non-Fiction']
         if value and value not in valid_categories:
             raise ValueError(f"Category must be one of the following: {', '.join(valid_categories)}.")
         return value
 
     def __repr__(self):
-        return f'Post(id={self.id}, title={self.title}, content={self.content}, summary={self.summary})'
+        return f"<Post id={self.id} title={self.title}>"

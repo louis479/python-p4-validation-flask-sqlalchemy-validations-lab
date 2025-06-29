@@ -61,49 +61,40 @@ class TestAuthor:
 class TestPost:
     '''Class Post in models.py'''
 
-    def test_requires_title(self):
-        '''requires each post to have a title.'''
-
+    def test_summary_length(self):
+        '''Summary too long test. More than 250 chars.'''
         with app.app_context():
+            content_string = "A" * 250
+            summary_string1 = "T" * 250
+            post1 = Post(
+                title="Some valid title",
+                content=content_string,
+                summary=summary_string1,
+                category="Non-Fiction"
+            )
+
+            summary_string2 = "T" * 251
             with pytest.raises(ValueError):
-                content_string = "HI" * 126
-                post = Post(title = '', content=content_string, category='Non-Fiction')
-                
+                post2 = Post(
+                    title="Another valid title",
+                    content=content_string,
+                    summary=summary_string2,
+                    category="Non-Fiction"
+                )
 
     def test_content_length(self):
         '''Content too short test. Less than 250 chars.'''
-
         with app.app_context():
-            
-            #valid content length
             content_string1 = 'A' * 250
-            post1 = Post(title='Secret Why I love programming.', content=content_string1, category='Non-Fiction')
-            
+            post1 = Post(title='Learning Python is great.', content=content_string1, category='Non-Fiction')
+
             with pytest.raises(ValueError):
-                #too short
                 content_string2 = 'A' * 249
-                post2 = Post(title='Guess Why I love programming.', content=content_string2, category='Non-Fiction')
+                post2 = Post(title='Learning Python is great.', content=content_string2, category='Non-Fiction')
 
-    def test_summary_length(self):
-        '''Summary too long test. More than 250 chars.'''
-
-        with app.app_context():
-            
-            content_string = "A" * 250
-            
-            # valid summary string
-            summary_string1 = "T" * 250
-            post1 = Post(title='You Won\'t Believe Why I love programming..', content=content_string, summary= summary_string1, category='Non-Fiction')
-            
-            # too long
-            summary_string2 = "T" * 251
-            with pytest.raises(ValueError):
-                post2 = Post(title='Top Reasons Why I love programming..', content=content_string, summary= summary_string2, category='Non-Fiction')
-
-
+    
     def test_category(self):
         '''Incorrect category test'''
-
         with app.app_context():
             content_string = "A" * 251
             with pytest.raises(ValueError):
@@ -115,4 +106,4 @@ class TestPost:
         with app.app_context():
             content_string = "A" * 260
             with pytest.raises(ValueError):
-                post = Post(title='Why I love programming.', content=content_string, category='Non-Fiction')
+                post = Post(title='Top 10 reasons why you won\'t believe this shocking secret.', content=content_string, category='Non-Fiction')
